@@ -119,7 +119,7 @@ async function loadPrintings() {
           <img 
             :src="group.symbolUrl" 
             :alt="`${group.setName} symbol`" 
-            class="w-6 h-6 inline-block mr-2"
+            class="w-6 h-6 inline-block mr-2 dark:invert"
           >
           {{ group.setName }} ({{ group.cards.length }} cards)
         </h3>
@@ -139,7 +139,7 @@ async function loadPrintings() {
                 }"
                 :disabled="deckStore.getCardCount(card.cardName) >= deckStore.getRequiredCount(card.cardName)"
               >
-                [+1]
+                +1
               </button>
               {{ card.cardName }}
             </div>
