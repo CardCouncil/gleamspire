@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+interface SetGroup {
+  cards: CardPrinting[]
+  symbolUrl: string
+}
+
 interface CardPrinting {
   setName: string
   setCode: string
@@ -46,7 +51,7 @@ export const useDeckStore = defineStore('deck', () => {
   }
 
   const groupedBySet = computed(() => {
-    const groups: { [key: string]: CardPrinting[] } = {}
+    const groups: { [key: string]: SetGroup } = {}
     
     const filteredPrintings = cardPrintings.value.filter(
       card => selectedSetTypes.value.has(card.setType)
