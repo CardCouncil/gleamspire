@@ -139,7 +139,7 @@ export const useDeckStore = defineStore('deck', () => {
     error.value = null
     
     try {
-      for (const [cardName, quantity] of currentDeckList.value.entries()) {
+      for (const [cardName] of currentDeckList.value.entries()) {
         // First, get the exact card to ensure we have the correct name
         const response = await fetch(
           `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(cardName)}"+game:paper&unique=prints`
