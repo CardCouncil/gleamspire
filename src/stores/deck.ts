@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { watch } from 'vue'
 
 interface SetGroup {
   cards: CardPrinting[]
@@ -29,9 +30,20 @@ export const useDeckStore = defineStore('deck', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const setMetadata = ref<Map<string, SetMetadata>>(new Map())
-  const selectedSetTypes = ref<Set<string>>(new Set(['expansion', 'core']))
+  const selectedSetTypes = ref<Set<string>>(new Set(
+    JSON.parse(localStorage.getItem('selectedSetTypes') || '["expansion", "core"]')
+  ))
   const isInitialized = ref(false)
   const setOrderBy = ref<'releaseDate' | 'cardCount'>('releaseDate')
+
+  // Watch for changes to selectedSetTypes and save to localStorage
+  watch(
+    selectedSetTypes,
+    (newTypes) => {
+      localStorage.setItem('selectedSetTypes', JSON.stringify(Array.from(newTypes)))
+    },
+    { deep: true }
+  )
 
   async function initializeSetMetadata() {
     if (!isInitialized.value) {

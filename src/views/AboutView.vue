@@ -3,7 +3,7 @@
 
 <template>
   <div class="about">
-    <h1>About Gleamspire</h1>
+    <h1>About Cardboard Tutor</h1>
     <p>
       This tool helps you track different printings of Magic: The Gathering cards
       across your deck lists. Simply paste your deck lists and get an interactive

@@ -32,8 +32,8 @@ async function loadPrintings() {
 
 <template>
   <div class="max-w-4xl mx-auto p-8">
-    <img :src="logo" alt="Gleamspire Logo" class="w-48 h-auto mx-auto mb-4 rounded-full">
-    <h1 class="text-4xl font-bold text-center mb-8">Gleamspire</h1>
+    <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
+    <h1 class="text-4xl font-bold text-center mb-8">Cardboard Tutor</h1>
     
     <div class="mb-8 text-center">
       <textarea
