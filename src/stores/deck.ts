@@ -23,14 +23,15 @@ interface SetMetadata {
 }
 
 export const useDeckStore = defineStore('deck', () => {
-  const deckLists = ref<string[]>([])
+  const currentDeckList = ref<Map<string, number>>(new Map())
   const cardPrintings = ref<CardPrinting[]>([])
-  const checkedCards = ref<Set<string>>(new Set())
+  const selectedPrintings = ref<Map<string, number>>(new Map())
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const setMetadata = ref<Map<string, SetMetadata>>(new Map())
   const selectedSetTypes = ref<Set<string>>(new Set(['expansion', 'core']))
   const isInitialized = ref(false)
+  const setOrderBy = ref<'releaseDate' | 'cardCount'>('releaseDate')
 
   async function initializeSetMetadata() {
     if (!isInitialized.value) {
@@ -78,31 +79,67 @@ export const useDeckStore = defineStore('deck', () => {
       }))
       .sort((a, b) => {
         // Get the most recent release date from each set's cards
-        const aDate = Math.max(...a.cards.map(card => new Date(card.releaseDate).getTime()))
-        const bDate = Math.max(...b.cards.map(card => new Date(card.releaseDate).getTime()))
-        return bDate - aDate
+        if (setOrderBy.value === 'releaseDate') {
+          const aDate = Math.max(...a.cards.map(card => new Date(card.releaseDate).getTime()))
+          const bDate = Math.max(...b.cards.map(card => new Date(card.releaseDate).getTime()))
+          return bDate - aDate
+        } else {
+          // Sort by card count first, then by set name for equal counts
+          const countDiff = b.cards.length - a.cards.length
+          return countDiff !== 0 ? countDiff : a.setName.localeCompare(b.setName)
+        }
       })
   })
 
-  async function addDeckList(list: string) {
-    await initializeSetMetadata()
-    deckLists.value.push(list)
-    await processNewDeckList(list)
+  const getCardCount = (cardName: string) => {
+    return selectedPrintings.value.get(cardName) || 0
   }
 
-  async function processNewDeckList(list: string) {
+  const getRequiredCount = (cardName: string) => {
+    return currentDeckList.value.get(cardName) || 0
+  }
+
+  function incrementCard(cardName: string) {
+    const currentCount = selectedPrintings.value.get(cardName) || 0
+    const requiredCount = currentDeckList.value.get(cardName) || 0
+    if (currentCount < requiredCount) {
+      selectedPrintings.value.set(cardName, currentCount + 1)
+    }
+  }
+
+  async function addDeckList(list: string) {
+    // Clear previous data
+    currentDeckList.value.clear()
+    cardPrintings.value = []
+    selectedPrintings.value.clear()
+    
+    // Parse deck list
+    const lines = list
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('//'))
+    
+    // Process each line to extract quantity and card name
+    lines.forEach(line => {
+      const match = line.match(/^(\d+)x?\s+(.+)$/)
+      if (match) {
+        const [, quantity, cardName] = match
+        currentDeckList.value.set(cardName, parseInt(quantity))
+      }
+    })
+  }
+
+  async function loadPrintings() {
+    await initializeSetMetadata()
+    await processCurrentDeckList()
+  }
+
+  async function processCurrentDeckList() {
     isLoading.value = true
     error.value = null
     
     try {
-      const cardNames = list
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line && !line.startsWith('//'))
-        .map(line => line.replace(/^\d+x?\s+/, ''))
-        .filter(Boolean)
-
-      for (const cardName of cardNames) {
+      for (const [cardName, quantity] of currentDeckList.value.entries()) {
         // First, get the exact card to ensure we have the correct name
         const response = await fetch(
           `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(cardName)}"+game:paper&unique=prints`
@@ -150,37 +187,27 @@ export const useDeckStore = defineStore('deck', () => {
     }
   }
 
-  function toggleCard(setCode: string, number: string) {
-    const card = cardPrintings.value.find(
-      c => c.setCode === setCode && c.number === number
-    )
-    if (card) {
-      const isChecked = checkedCards.value.has(card.cardName)
-      if (isChecked) {
-        checkedCards.value.delete(card.cardName)
-      } else {
-        checkedCards.value.add(card.cardName)
-      }
-    }
-  }
-
   function clearAll() {
-    deckLists.value = []
+    currentDeckList.value.clear()
     cardPrintings.value = []
-    checkedCards.value.clear()
+    selectedPrintings.value.clear()
     error.value = null
   }
 
   return {
-    deckLists,
+    currentDeckList,
     cardPrintings,
-    checkedCards,
+    selectedPrintings,
     isLoading,
     error,
     selectedSetTypes,
     groupedBySet,
+    setOrderBy,
     addDeckList,
-    toggleCard,
-    clearAll
+    incrementCard,
+    getCardCount,
+    getRequiredCount,
+    clearAll,
+    loadPrintings
   }
 })
