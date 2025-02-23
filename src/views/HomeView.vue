@@ -64,7 +64,7 @@ async function loadPrintings() {
     <div v-if="deckListEntries.length > 0" class="mt-8">
       <h2 class="text-2xl font-semibold mb-6">Current Deck List</h2>
       <div class="mb-6 p-4 border rounded-lg bg-white dark:bg-gray-800 shadow-sm">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
             v-for="[cardName, quantity] in deckListEntries"
             :key="cardName"
@@ -123,7 +123,7 @@ async function loadPrintings() {
           >
           {{ group.setName }} ({{ group.cards.length }} cards)
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
             v-for="card in group.cards"
             :key="`${card.setCode}-${card.number}`"
