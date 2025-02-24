@@ -77,7 +77,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto p-8 space-y-8">
+  <div class="max-w-7xl mx-auto p-8 space-y-8">
     <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
     <h1 class="text-6xl header-font text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
       Cardboard Tutor
@@ -133,11 +133,11 @@ onMounted(async () => {
         </label>
       </div>
       <div class="glass-card p-6 rounded-xl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           <div
             v-for="[cardName, quantity] in deckListEntries"
             :key="cardName"
-            class="p-3 hover:bg-white/5 rounded-lg transition-colors"
+            class="p-1 hover:bg-white/5 rounded-lg transition-colors"
           >
             <div class="flex items-center gap-2">
               <span class="font-mono">{{ quantity }}x</span>
@@ -197,11 +197,11 @@ onMounted(async () => {
           >
           {{ group.setName }} ({{ group.cards.length }} cards)
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           <div
             v-for="card in group.cards"
             :key="`${card.setCode}-${card.number}`"
-            class="p-3 hover:bg-white/5 rounded-lg transition-colors"
+            class="p-1 hover:bg-white/5 rounded-lg transition-colors"
           >
             <div class="flex items-center gap-3">
               <button
