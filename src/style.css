@@ -24,7 +24,8 @@
   .input-field {
     @apply bg-ivory/5 border-peach-yellow-300/20 rounded-none
            focus:border-xanthous-400/50 focus:ring-2 focus:ring-xanthous-400/25 
-           transition-all duration-300 text-ivory;
+           transition-all duration-300 text-ivory
+           [&>option]:bg-kobicha-500 [&>option]:text-ivory;
   }
   
   .btn-primary {
