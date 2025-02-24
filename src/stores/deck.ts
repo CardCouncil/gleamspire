@@ -43,6 +43,7 @@ export const useDeckStore = defineStore('deck', () => {
 
   const colorOrder = ['W', 'U', 'B', 'R', 'G']
   const rarityOrder = ['mythic', 'rare', 'uncommon', 'common', 'special']
+  const basicLandNames = new Set(['Plains', 'Island', 'Swamp', 'Mountain', 'Forest', 'Wastes'])
 
   function sortCards(a: CardPrinting, b: CardPrinting): number {
     switch (cardSortBy.value) {
@@ -178,6 +179,9 @@ export const useDeckStore = defineStore('deck', () => {
         const match = line.match(/^(\d+)x?\s+(.+)$/)
         if (match) {
           const [, quantity, cardName] = match
+          // Skip basic lands
+          if (basicLandNames.has(cardName)) continue
+          
           currentDeckList.value.set(cardName, parseInt(quantity))
     
           // Fetch all printings for the card
