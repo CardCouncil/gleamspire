@@ -6,6 +6,31 @@ import SetTypeModal from '../components/SetTypeModal.vue'
 import ManaSymbols from '../components/ManaSymbols.vue'
 import { computed, onMounted } from 'vue'
 
+const exportRemainingCards = () => {
+  const remainingCards = Array.from(deckStore.currentDeckList.entries())
+    .filter(([cardName, quantity]) => {
+      const collected = deckStore.getCardCount(cardName)
+      return collected < quantity
+    })
+    .map(([cardName, quantity]) => {
+      const collected = deckStore.getCardCount(cardName)
+      const remaining = quantity - collected
+      return `${remaining}x ${cardName}`
+    })
+    .join('\n')
+
+  // Create and trigger download
+  const blob = new Blob([remainingCards], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'buy_list.txt'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 const deckStore = useDeckStore()
 const newDeckList = ref('')
 const showSetTypeModal = ref(false)
@@ -141,7 +166,10 @@ onMounted(async () => {
           >
             <div class="flex items-center gap-2">
               <span class="font-mono">{{ quantity }}x</span>
-              <span class="flex items-center gap-2">
+              <span 
+                class="flex items-center gap-2"
+                :class="{ 'line-through text-ivory/50': deckStore.getCardCount(cardName) >= quantity }"
+              >
                 {{ cardName }}{{ ' ' }}
                 <template v-if="deckStore.cardPrintings && deckStore.cardPrintings.length > 0">
                   <span
@@ -154,11 +182,22 @@ onMounted(async () => {
                   </span>
                 </template>
               </span>
-              <span class="ml-auto font-mono text-sm text-peach-yellow-300">
+              <span 
+                class="ml-auto font-mono text-sm"
+                :class="deckStore.getCardCount(cardName) >= quantity ? 'text-ivory/50' : 'text-peach-yellow-300'"
+              >
                 ({{ deckStore.getCardCount(cardName) }}/{{ quantity }})
               </span>
             </div>
           </div>
+        </div>
+        <div class="mt-6 flex justify-center">
+          <button
+            @click="exportRemainingCards"
+            class="btn-secondary"
+          >
+            Export
+          </button>
         </div>
       </div>
     </div>
