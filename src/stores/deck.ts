@@ -11,6 +11,10 @@ interface CardPrinting {
   setName: string
   setCode: string
   cardName: string
+  manaCost: string
+  colorIdentity: string[]
+  typeLine: string
+  rarity: string
   number: string
   setType: string
   releaseDate: string
@@ -35,6 +39,33 @@ export const useDeckStore = defineStore('deck', () => {
   ))
   const isInitialized = ref(false)
   const setOrderBy = ref<'releaseDate' | 'cardCount'>('releaseDate')
+  const cardSortBy = ref<'name' | 'color_identity' | 'type_line' | 'rarity'>('name')
+
+  const colorOrder = ['W', 'U', 'B', 'R', 'G']
+  const rarityOrder = ['mythic', 'rare', 'uncommon', 'common', 'special']
+
+  function sortCards(a: CardPrinting, b: CardPrinting): number {
+    switch (cardSortBy.value) {
+      case 'color_identity':
+        const colorA = a.colorIdentity.length === 0 ? ['C'] : a.colorIdentity
+        const colorB = b.colorIdentity.length === 0 ? ['C'] : b.colorIdentity
+        const firstColorA = colorA[0]
+        const firstColorB = colorB[0]
+        const colorCompare = (colorOrder.indexOf(firstColorA) - colorOrder.indexOf(firstColorB))
+        return colorCompare !== 0 ? colorCompare : a.cardName.localeCompare(b.cardName)
+      
+      case 'type_line':
+        return a.typeLine.localeCompare(b.typeLine) || 
+               a.cardName.localeCompare(b.cardName)
+      
+      case 'rarity':
+        const rarityCompare = rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity)
+        return rarityCompare !== 0 ? rarityCompare : a.cardName.localeCompare(b.cardName)
+      
+      default: // 'name'
+        return a.cardName.localeCompare(b.cardName)
+    }
+  }
 
   // Watch for changes to selectedSetTypes and save to localStorage
   watch(
@@ -66,10 +97,10 @@ export const useDeckStore = defineStore('deck', () => {
   const groupedBySet = computed(() => {
     const groups: { [key: string]: SetGroup } = {}
     
-    const filteredPrintings = cardPrintings.value.filter(
+    const filteredPrintings = cardPrintings.value?.filter(
       card => selectedSetTypes.value.has(card.setType)
-    )
-    
+    ) || []
+
     filteredPrintings.forEach(card => {
       const key = card.setName
       if (!groups[key]) {
@@ -80,6 +111,11 @@ export const useDeckStore = defineStore('deck', () => {
       if (!groups[key].cards.some(existing => existing.cardName === card.cardName)) {
         groups[key].cards.push(card)
       }
+    })
+
+    // Sort cards within each group
+    Object.values(groups).forEach(group => {
+      group.cards.sort(sortCards)
     })
 
     // Sort sets by number of cards, descending
@@ -124,75 +160,67 @@ export const useDeckStore = defineStore('deck', () => {
     currentDeckList.value.clear()
     cardPrintings.value = []
     selectedPrintings.value.clear()
-    
-    // Parse deck list
-    const lines = list
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line && !line.startsWith('//'))
-    
-    // Process each line to extract quantity and card name
-    lines.forEach(line => {
-      const match = line.match(/^(\d+)x?\s+(.+)$/)
-      if (match) {
-        const [, quantity, cardName] = match
-        currentDeckList.value.set(cardName, parseInt(quantity))
-      }
-    })
-  }
-
-  async function loadPrintings() {
-    await initializeSetMetadata()
-    await processCurrentDeckList()
-  }
-
-  async function processCurrentDeckList() {
-    isLoading.value = true
     error.value = null
-    
+    isLoading.value = true
+
     try {
-      for (const [cardName] of currentDeckList.value.entries()) {
-        // First, get the exact card to ensure we have the correct name
-        const response = await fetch(
-          `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(cardName)}"+game:paper&unique=prints`
-        )
-        const data = await response.json()
-        
-        if (data.status === 404) {
-          continue // Skip cards that aren't found
-        }
-        
-        if (!response.ok) {
-          throw new Error(data.details || 'Error fetching card data')
-        }
-
-        const newPrintings = data.data
-          .map((card: any) => ({
-            setName: card.set_name,
-            setCode: card.set,
-            cardName: card.name,
-            number: card.collector_number,
-            setType: card.set_type,
-            releaseDate: card.released_at
-          }))
-          .sort((a: CardPrinting, b: CardPrinting) => 
-            a.setName.localeCompare(b.setName) || 
-            a.number.localeCompare(b.number)
+      // Initialize set metadata first
+      await initializeSetMetadata()
+    
+      // Parse deck list
+      const lines = list
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('//'))
+    
+      // Process each line to extract quantity and card name
+      for (const line of lines) {
+        const match = line.match(/^(\d+)x?\s+(.+)$/)
+        if (match) {
+          const [, quantity, cardName] = match
+          currentDeckList.value.set(cardName, parseInt(quantity))
+    
+          // Fetch all printings for the card
+          const response = await fetch(
+            `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(cardName)}"+game:paper&unique=prints`
           )
+          const data = await response.json()
 
-        // Add only unique printings
-        newPrintings.forEach((printing: CardPrinting) => {
-          const exists = cardPrintings.value.some(
-            p => p.setCode === printing.setCode && 
-                p.number === printing.number &&
-                p.cardName === printing.cardName
-          )
-          if (!exists) {
-            cardPrintings.value.push(printing)
+          if (response.ok) {
+            const newPrintings = data.data
+              .map((card: any) => ({
+                setName: card.set_name,
+                setCode: card.set,
+                cardName: card.name,
+                manaCost: card.mana_cost || '',
+                colorIdentity: card.color_identity || [],
+                typeLine: card.type_line?.split('—')[0].trim() || '',
+                rarity: card.rarity || '',
+                number: card.collector_number,
+                setType: card.set_type,
+                releaseDate: card.released_at
+              }))
+              .sort((a: CardPrinting, b: CardPrinting) => 
+                a.setName.localeCompare(b.setName) || 
+                a.number.localeCompare(b.number)
+              )
+
+            // Add only unique printings
+            newPrintings.forEach((printing: CardPrinting) => {
+              const exists = cardPrintings.value.some(
+                p => p.setCode === printing.setCode && 
+                    p.number === printing.number &&
+                    p.cardName === printing.cardName
+              )
+              if (!exists) {
+                cardPrintings.value.push(printing)
+              }
+            })
           }
-        })
+        }
       }
     } catch (e) {
+      console.error('Error processing deck list:', e)
       error.value = 'Error processing deck list: ' + (e as Error).message
     } finally {
       isLoading.value = false
@@ -211,6 +239,7 @@ export const useDeckStore = defineStore('deck', () => {
     cardPrintings,
     selectedPrintings,
     isLoading,
+    cardSortBy,
     error,
     selectedSetTypes,
     groupedBySet,
@@ -219,7 +248,6 @@ export const useDeckStore = defineStore('deck', () => {
     incrementCard,
     getCardCount,
     getRequiredCount,
-    clearAll,
-    loadPrintings
+    clearAll
   }
 })
