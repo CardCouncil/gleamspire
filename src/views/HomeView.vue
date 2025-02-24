@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import logo from '../assets/logo.png'
 import { useDeckStore } from '../stores/deck'
 import SetTypeModal from '../components/SetTypeModal.vue'
 import ManaSymbols from '../components/ManaSymbols.vue'
-import logo from '../assets/logo.png'
 import { computed, onMounted } from 'vue'
 
 const deckStore = useDeckStore()
@@ -77,44 +77,50 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto p-8">
+  <div class="max-w-5xl mx-auto p-8 space-y-8">
     <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
-    <h1 class="text-4xl font-bold text-center mb-8">Cardboard Tutor</h1>
+    <h1 class="text-6xl header-font text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
+      Cardboard Tutor
+    </h1>
     
-    <div class="mb-8 text-center">
+    <div class="glass-card p-8 rounded-xl text-center space-y-4">
       <textarea
         v-model="newDeckList"
         placeholder="Paste your deck list here (one card per line)"
         rows="10"
-        class="w-full p-4 mb-4 border rounded-lg font-mono bg-gray-50 dark:bg-gray-800"
+        class="w-full p-4 mb-4 font-mono input-field"
       ></textarea>
-      <button 
-        @click="handleSubmit" 
-        :disabled="deckStore.isLoading"
-        class="px-4 py-2 mx-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-      >
-        {{ deckStore.isLoading ? 'Processing...' : 'Add Deck List' }}
-      </button>
-      <button 
-        @click="showSetTypeModal = true" 
-        class="px-4 py-2 mx-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-      >
-        Filter Set
-      </button>
+      <div class="flex justify-center gap-4">
+        <button 
+          @click="handleSubmit" 
+          :disabled="deckStore.isLoading"
+          class="btn-primary"
+        >
+          {{ deckStore.isLoading ? 'Processing...' : 'Add Deck List' }}
+        </button>
+        <button 
+          @click="showSetTypeModal = true" 
+          class="btn-secondary"
+        >
+          Filter Set
+        </button>
+      </div>
     </div>
 
     <div v-if="deckStore.error" class="p-4 mb-4 text-red-700 bg-red-100 border border-red-300 rounded-lg">
       {{ deckStore.error }}
     </div>
 
-    <div v-if="deckListEntries.length > 0" class="mt-8">
+    <div v-if="deckListEntries.length > 0" class="space-y-6">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-semibold">Current Deck List</h2>
+        <h2 class="text-2xl header-font bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
+          Current Deck List
+        </h2>
         <label class="flex items-center gap-2 justify-end">
           <span class="text-sm font-medium">Sort by:</span>
           <select
             v-model="deckStore.cardSortBy"
-            class="px-3 py-1.5 bg-white dark:bg-gray-700 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+            class="px-3 py-1.5 rounded-lg text-sm input-field min-w-[120px]"
           >
             <option
               v-for="option in sortOptions"
@@ -126,12 +132,12 @@ onMounted(async () => {
           </select>
         </label>
       </div>
-      <div class="mb-6 p-4 border rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+      <div class="glass-card p-6 rounded-xl">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
             v-for="[cardName, quantity] in deckListEntries"
             :key="cardName"
-            class="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
+            class="p-3 hover:bg-white/5 rounded-lg transition-colors"
           >
             <div class="flex items-center gap-2">
               <span class="font-mono">{{ quantity }}x</span>
@@ -140,7 +146,7 @@ onMounted(async () => {
                 <template v-if="deckStore.cardPrintings && deckStore.cardPrintings.length > 0">
                   <span
                     v-if="deckStore.cardPrintings.find(p => p.cardName === cardName)?.manaCost"
-                    class="text-sm text-gray-500 font-mono"
+                    class="text-sm text-peach-yellow-300 font-mono"
                   >
                     <ManaSymbols 
                       :text="deckStore.cardPrintings.find(p => p.cardName === cardName)?.manaCost || ''"
@@ -148,7 +154,7 @@ onMounted(async () => {
                   </span>
                 </template>
               </span>
-              <span class="ml-auto font-mono text-sm text-gray-500">
+              <span class="ml-auto font-mono text-sm text-peach-yellow-300">
                 ({{ deckStore.getCardCount(cardName) }}/{{ quantity }})
               </span>
             </div>
@@ -157,14 +163,16 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div v-if="deckStore.groupedBySet.length > 0" class="mt-8">
+    <div v-if="deckStore.groupedBySet.length > 0" class="space-y-6">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-semibold">Card Printings</h2>
+        <h2 class="text-2xl header-font bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
+          Card Printings
+        </h2>
         <label class="flex items-center gap-2 justify-end">
           <span class="text-sm font-medium">Order sets by:</span>
           <select
             v-model="deckStore.setOrderBy"
-            class="px-3 py-1.5 bg-white dark:bg-gray-700 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+            class="px-3 py-1.5 rounded-lg text-sm input-field min-w-[120px]"
           >
             <option
               v-for="option in orderOptions"
@@ -179,13 +187,13 @@ onMounted(async () => {
       <div 
         v-for="group in deckStore.groupedBySet" 
         :key="group.setName" 
-        class="mb-6 p-4 border rounded-lg bg-white dark:bg-gray-800 shadow-sm"
+        class="glass-card p-6 rounded-xl mb-6"
       >
         <h3 class="text-xl font-medium mb-4">
           <img 
             :src="group.symbolUrl" 
             :alt="`${group.setName} symbol`" 
-            class="w-6 h-6 inline-block mr-2 dark:invert"
+            class="w-6 h-6 inline-block mr-2 invert"
           >
           {{ group.setName }} ({{ group.cards.length }} cards)
         </h3>
@@ -193,12 +201,12 @@ onMounted(async () => {
           <div
             v-for="card in group.cards"
             :key="`${card.setCode}-${card.number}`"
-            class="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
+            class="p-3 hover:bg-white/5 rounded-lg transition-colors"
           >
             <div class="flex items-center gap-3">
               <button
                 @click="deckStore.incrementCard(card.cardName)"
-                class="px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded text-sm font-mono"
+                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
                 :class="{
                   'opacity-50 cursor-not-allowed': 
                     deckStore.getCardCount(card.cardName) >= deckStore.getRequiredCount(card.cardName)

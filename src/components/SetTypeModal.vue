@@ -108,27 +108,29 @@ function close() {
 <template>
   <div 
     v-if="show" 
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" 
     @click="close"
   >
     <div 
-      class="bg-white dark:bg-gray-800 p-8 rounded-lg max-w-2xl w-11/12 max-h-[90vh] overflow-y-auto"
+      class="glass-card p-8 rounded-xl max-w-2xl w-11/12 max-h-[90vh] overflow-y-auto"
       @click.stop
     >
       <div class="space-y-6">
         <div>
-          <h2 class="text-2xl font-semibold mb-4">Filter Sets</h2>
+          <h2 class="text-2xl font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+            Filter Sets
+          </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label 
               v-for="type in setTypes" 
               :key="type" 
-              class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded"
+              class="flex items-center gap-2 cursor-pointer hover:bg-white/5 p-3 rounded-lg transition-colors"
             >
               <input
                 type="checkbox"
                 :checked="selectedTypes.has(type)"
                 @change="toggleType(type)"
-                class="w-4 h-4 text-blue-600"
+                class="w-4 h-4 text-xanthous-500 bg-ivory/10 border-peach-yellow-300/20 rounded"
               >
               {{ type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) }}
             </label>
@@ -136,26 +138,28 @@ function close() {
         </div>
         
         <div>
-          <h3 class="text-xl font-semibold mb-2">Available Sets</h3>
-          <p class="text-sm text-gray-500 mb-4">Filter by set type above to show relevant sets</p>
+          <h3 class="text-xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
+            Available Sets
+          </h3>
+          <p class="text-sm text-ivory/60 mb-4">Filter by set type above to show relevant sets</p>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label 
               v-for="set in availableSets" 
               :key="set.code" 
-              class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded"
+              class="flex items-center gap-2 cursor-pointer hover:bg-white/5 p-3 rounded-lg transition-colors"
             >
               <input
                 type="checkbox"
                 :checked="selectedSets.has(set.code)"
                 @change="toggleSet(set.code)"
-                class="w-4 h-4 text-blue-600"
+                class="w-4 h-4 text-xanthous-500 bg-ivory/10 border-peach-yellow-300/20 rounded"
               >
               <img 
                 v-if="set.symbolUrl"
                 :src="set.symbolUrl"
                 :alt="`${set.name} symbol`"
-                class="w-4 h-4 dark:invert"
+                class="w-4 h-4 invert"
               >
               {{ set.name }}
             </label>
@@ -164,7 +168,7 @@ function close() {
         
         <button 
           @click="close" 
-          class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          class="w-full btn-primary"
           >
           Close
         </button>

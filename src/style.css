@@ -2,14 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
+@layer base {
+  :root {
+    --gradient-start: theme('colors.kobicha.400');
+    --gradient-end: theme('colors.kobicha.600');
+  }
+
+  .header-font {
+    font-family: 'Luckiest Guy', cursive;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-ivory/10 backdrop-blur-lg border border-peach-yellow-300/20 shadow-xl;
+  }
+  
+  .input-field {
+    @apply bg-ivory/5 border-peach-yellow-300/20 rounded-none
+           focus:border-xanthous-400/50 focus:ring-2 focus:ring-xanthous-400/25 
+           transition-all duration-300 text-ivory;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-xanthous-400 to-xanthous-600 
+           hover:from-xanthous-500 hover:to-xanthous-700
+           text-black font-medium px-6 py-2.5 rounded-lg shadow-lg 
+           hover:shadow-xanthous-500/25 transition-all duration-300
+           disabled:from-kobicha-200 disabled:to-kobicha-300 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-to-r from-peach-yellow-400 to-peach-yellow-600 
+           hover:from-peach-yellow-500 hover:to-peach-yellow-700
+           text-black font-medium px-6 py-2.5 rounded-lg shadow-lg
+           hover:shadow-peach-yellow-500/25 transition-all duration-300;
+  }
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: theme('colors.ivory.DEFAULT');
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  min-height: 100vh;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -17,9 +58,29 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
+/* Webkit scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: theme('colors.kobicha.300');
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: theme('colors.xanthous.400');
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.xanthous.500');
+}
+
+/* Firefox scrollbar styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.xanthous.400') theme('colors.kobicha.300');
 }
