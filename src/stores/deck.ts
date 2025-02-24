@@ -174,42 +174,49 @@ export const useDeckStore = defineStore('deck', () => {
       const lines = list
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line && !line.startsWith('//'))
+        .filter(line => line && !line.startsWith('//') && line !== '')
     
       // Process each line to extract quantity and card name
       for (const line of lines) {
+        let quantity = 1
+        let cardName = line
+
+        // Check if line starts with a number
         const match = line.match(/^(\d+)x?\s+(.+)$/)
         if (match) {
-          const [, quantity, cardName] = match
-          // Skip basic lands
-          if (basicLandNames.has(cardName)) continue
-          
-          currentDeckList.value.set(cardName, parseInt(quantity))
-    
-          // Fetch all printings for the card
-          const response = await fetch(
-            `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(cardName)}"+game:paper&unique=prints`
-          )
-          const data = await response.json()
+          quantity = parseInt(match[1])
+          cardName = match[2]
+        }
 
-          if (response.ok) {
-            const newPrintings = data.data
-              .map((card: any) => ({
-                setName: card.set_name,
-                setCode: card.set,
-                cardName: card.name,
-                manaCost: card.mana_cost || '',
-                colorIdentity: card.color_identity || [],
-                typeLine: card.type_line?.split('—')[0].trim() || '',
-                rarity: card.rarity || '',
-                number: card.collector_number,
-                setType: card.set_type,
-                releaseDate: card.released_at
-              }))
-              .sort((a: CardPrinting, b: CardPrinting) => 
-                a.setName.localeCompare(b.setName) || 
-                a.number.localeCompare(b.number)
-              )
+        // Skip basic lands
+        if (basicLandNames.has(cardName)) continue
+        
+        currentDeckList.value.set(cardName, quantity)
+    
+        // Fetch all printings for the card
+        const response = await fetch(
+          `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(cardName)}"+game:paper&unique=prints`
+        )
+        const data = await response.json()
+
+        if (response.ok) {
+          const newPrintings = data.data
+            .map((card: any) => ({
+              setName: card.set_name,
+              setCode: card.set,
+              cardName: card.name,
+              manaCost: card.mana_cost || '',
+              colorIdentity: card.color_identity || [],
+              typeLine: card.type_line?.split('—')[0].trim() || '',
+              rarity: card.rarity || '',
+              number: card.collector_number,
+              setType: card.set_type,
+              releaseDate: card.released_at
+            }))
+            .sort((a: CardPrinting, b: CardPrinting) => 
+              a.setName.localeCompare(b.setName) || 
+              a.number.localeCompare(b.number)
+            )
 
             // Add only unique printings
             newPrintings.forEach((printing: CardPrinting) => {
@@ -222,7 +229,6 @@ export const useDeckStore = defineStore('deck', () => {
                 cardPrintings.value.push(printing)
               }
             })
-          }
         }
       }
     } catch (e) {
