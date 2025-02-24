@@ -158,6 +158,13 @@ export const useDeckStore = defineStore('deck', () => {
     }
   }
 
+  function decrementCard(cardName: string) {
+    const currentCount = selectedPrintings.value.get(cardName) || 0
+    if (currentCount > 0) {
+      selectedPrintings.value.set(cardName, currentCount - 1)
+    }
+  }
+
   async function addDeckList(list: string) {
     // Clear previous data
     currentDeckList.value.clear()
@@ -261,6 +268,7 @@ export const useDeckStore = defineStore('deck', () => {
     setOrderBy,
     addDeckList,
     incrementCard,
+    decrementCard,
     getCardCount,
     getRequiredCount,
     clearAll
