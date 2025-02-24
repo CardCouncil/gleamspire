@@ -4,7 +4,7 @@ import { useDeckStore } from '../stores/deck'
 import SetTypeModal from '../components/SetTypeModal.vue'
 import ManaSymbols from '../components/ManaSymbols.vue'
 import logo from '../assets/logo.png'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 const deckStore = useDeckStore()
 const newDeckList = ref('')
@@ -71,6 +71,9 @@ async function handleSubmit() {
   }
 }
 
+onMounted(async () => {
+  await deckStore.initializeSetMetadata()
+})
 </script>
 
 <template>
@@ -96,7 +99,7 @@ async function handleSubmit() {
         @click="showSetTypeModal = true" 
         class="px-4 py-2 mx-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
       >
-        Filter Set Types
+        Filter Set
       </button>
     </div>
 
@@ -214,6 +217,7 @@ async function handleSubmit() {
     <SetTypeModal
       v-model:show="showSetTypeModal"
       v-model:selectedTypes="deckStore.selectedSetTypes"
+      v-model:selectedSets="deckStore.selectedSets"
     />
   </div>
 </template>

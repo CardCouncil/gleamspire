@@ -37,6 +37,7 @@ export const useDeckStore = defineStore('deck', () => {
   const selectedSetTypes = ref<Set<string>>(new Set(
     JSON.parse(localStorage.getItem('selectedSetTypes') || '["expansion", "core"]')
   ))
+  const selectedSets = ref<Set<string>>(new Set())
   const isInitialized = ref(false)
   const setOrderBy = ref<'releaseDate' | 'cardCount'>('releaseDate')
   const cardSortBy = ref<'name' | 'color_identity' | 'type_line' | 'rarity'>('name')
@@ -98,8 +99,9 @@ export const useDeckStore = defineStore('deck', () => {
   const groupedBySet = computed(() => {
     const groups: { [key: string]: SetGroup } = {}
     
-    const filteredPrintings = cardPrintings.value?.filter(
-      card => selectedSetTypes.value.has(card.setType)
+    const filteredPrintings = cardPrintings.value?.filter(card => 
+      (selectedSetTypes.value.has(card.setType) && 
+       (selectedSets.value.size === 0 || selectedSets.value.has(card.setCode)))
     ) || []
 
     filteredPrintings.forEach(card => {
@@ -239,11 +241,14 @@ export const useDeckStore = defineStore('deck', () => {
   }
 
   return {
+    initializeSetMetadata,
+    setMetadata,
     currentDeckList,
     cardPrintings,
     selectedPrintings,
     isLoading,
     cardSortBy,
+    selectedSets,
     error,
     selectedSetTypes,
     groupedBySet,
