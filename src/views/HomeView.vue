@@ -185,13 +185,13 @@ onMounted(async () => {
           :disabled="deckStore.isLoading"
           class="btn-primary"
         >
-          {{ deckStore.isLoading ? 'Processing...' : 'Add Deck List' }}
+          {{ deckStore.isLoading ? 'Processing...' : 'Add' }}
         </button>
         <button 
           @click="showSetTypeModal = true" 
           class="btn-secondary"
         >
-          Filter Set
+          Filter Sets
         </button>
       </div>
     </div>
@@ -373,11 +373,11 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    
-    <SetTypeModal
+  </div>
+  
+  <SetTypeModal
       v-model:show="showSetTypeModal"
       v-model:selectedTypes="deckStore.selectedSetTypes"
       v-model:selectedSets="deckStore.selectedSets"
     />
-  </div>
 </template>

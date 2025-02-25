@@ -112,7 +112,7 @@ function close() {
     @click="close"
   >
     <div 
-      class="glass-card p-8 rounded-xl max-w-2xl w-11/12 max-h-[90vh] overflow-y-auto"
+      class="glass-card p-8 rounded-xl max-w-6xl w-11/12 max-h-[90vh] overflow-y-auto"
       @click.stop
     >
       <div class="space-y-6">
@@ -120,7 +120,7 @@ function close() {
           <h2 class="text-2xl font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
             Filter Sets
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <label 
               v-for="type in setTypes" 
               :key="type" 
@@ -143,7 +143,7 @@ function close() {
           </h3>
           <p class="text-sm text-ivory/60 mb-4">Filter by set type above to show relevant sets</p>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3 gap-4">
             <label 
               v-for="set in availableSets" 
               :key="set.code" 
