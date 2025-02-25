@@ -289,7 +289,7 @@ onMounted(async () => {
             @click="exportRemainingCards"
             class="btn-secondary"
           >
-            Export
+            Export Remaining
           </button>
         </div>
       </div>
