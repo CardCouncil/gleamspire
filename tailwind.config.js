@@ -63,19 +63,19 @@ export default {
       // Add text-stroke-width utilities
       const strokeWidthUtilities = {
         '.text-stroke-1': {
-          '-webkit-text-stroke-width': '1px',
+          'text-stroke-width': '1px',
         },
         '.text-stroke-2': {
-          '-webkit-text-stroke-width': '2px',
+          'text-stroke-width': '2px',
         },
         '.text-stroke-3': {
-          '-webkit-text-stroke-width': '3px',
+          'text-stroke-width': '3px',
         },
         '.text-stroke-4': {
-          '-webkit-text-stroke-width': '4px',
+          'text-stroke-width': '4px',
         },
         '.text-stroke-5': {
-          '-webkit-text-stroke-width': '5px',
+          'text-stroke-width': '5px',
         },
       };
       
@@ -92,18 +92,18 @@ export default {
           Object.entries(colorValue).forEach(([shade, shadeValue]) => {
             if (shade === 'DEFAULT') {
               strokeColorUtilities[`.text-stroke-${colorName}`] = {
-                '-webkit-text-stroke-color': shadeValue,
+                'text-stroke-color': shadeValue,
               };
             } else {
               strokeColorUtilities[`.text-stroke-${colorName}-${shade}`] = {
-                '-webkit-text-stroke-color': shadeValue,
+                'text-stroke-color': shadeValue,
               };
             }
           });
         } else {
           // Handle simple color strings
           strokeColorUtilities[`.text-stroke-${colorName}`] = {
-            '-webkit-text-stroke-color': colorValue,
+            'text-stroke-color': colorValue,
           };
         }
       });
