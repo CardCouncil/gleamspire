@@ -105,7 +105,7 @@ onMounted(async () => {
 <template>
   <div class="max-w-7xl mx-auto p-8 space-y-8">
     <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
-    <h1 title="Sir Truffles" class="text-7xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent" style="text-stroke: 5px white;">
+    <h1 title="Sir Truffles" class="lg:text-7xl text-6xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent" style="text-stroke: 5px white;">
       Cardboard Tutor
     </h1>
     
@@ -144,7 +144,7 @@ onMounted(async () => {
           class="flex items-center gap-2 group"
         >
           <h2 class="text-2xl header-font bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
-            Current Deck List
+            Deck List
           </h2>
           <svg 
             v-if="isDeckListExpanded"
@@ -295,6 +295,16 @@ onMounted(async () => {
                 +1
               </button>
               {{ card.cardName }}
+              <template v-if="deckStore.cardPrintings && deckStore.cardPrintings.length > 0">
+                <span
+                  v-if="deckStore.cardPrintings.find(p => p.cardName === card.cardName )?.manaCost"
+                  class="text-sm text-peach-yellow-300 font-mono"
+                >
+                  <ManaSymbols 
+                    :text="deckStore.cardPrintings.find(p => p.cardName === card.cardName )?.manaCost || ''"
+                  />
+                </span>
+              </template>
             </div>
           </div>
         </div>
