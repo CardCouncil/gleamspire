@@ -50,6 +50,51 @@ const sortOptions = [
 const colorOrder = ['W', 'U', 'B', 'R', 'G']
 const rarityOrder = ['mythic', 'rare', 'uncommon', 'common', 'special']
 
+// Track which cards have been selected in which sets
+const selectedCardsBySet = ref(new Map<string, Set<string>>())
+
+// Initialize or update the tracking of which card versions are selected
+function updateSelectedCardsBySet(cardName: string, setCode: string, isAdding: boolean) {
+  if (!selectedCardsBySet.value.has(setCode)) {
+    selectedCardsBySet.value.set(setCode, new Set())
+  }
+  
+  const cardsInSet = selectedCardsBySet.value.get(setCode)
+  
+  if (isAdding) {
+    cardsInSet?.add(cardName)
+  } else {
+    if (deckStore.getCardCount(cardName) === 0) {
+      cardsInSet?.delete(cardName)
+    }
+  }
+}
+
+// Determine if a card should be visible based on selection status
+function shouldShowCard(cardName: string, setCode: string) {
+  const totalRequired = deckStore.getRequiredCount(cardName)
+  const totalSelected = deckStore.getCardCount(cardName)
+  
+  // If we haven't reached the required count, always show all versions
+  if (totalSelected < totalRequired) {
+    return true
+  }
+  
+  // If this version has been selected at least once, show it
+  return selectedCardsBySet.value.get(setCode)?.has(cardName) || false
+}
+
+// Override increment and decrement methods to track which versions are selected
+function incrementCard(cardName: string, setCode: string) {
+  deckStore.incrementCard(cardName)
+  updateSelectedCardsBySet(cardName, setCode, true)
+}
+
+function decrementCard(cardName: string, setCode: string) {
+  deckStore.decrementCard(cardName)
+  updateSelectedCardsBySet(cardName, setCode, false)
+}
+
 const deckListEntries = computed(() =>
   Array.from(deckStore.currentDeckList.entries()).sort(([a], [b]) => {
     // If we don't have card data yet, sort by name only
@@ -90,10 +135,28 @@ const deckListEntries = computed(() =>
     }
   })
 )
+
+// Filter the cards in each set based on our selection rules
+const filteredGroupedBySet = computed(() => {
+  return deckStore.groupedBySet.map(group => {
+    // Filter cards based on our visibility rules
+    const filteredCards = group.cards.filter(card => 
+      shouldShowCard(card.cardName, card.setCode)
+    )
+    
+    return {
+      ...group,
+      cards: filteredCards
+    }
+  }).filter(group => group.cards.length > 0) // Only show sets that have visible cards
+})
+
 async function handleSubmit() {
   if (newDeckList.value.trim()) {
     await deckStore.addDeckList(newDeckList.value)
     newDeckList.value = ''
+    // Reset the selected cards tracking when loading a new deck
+    selectedCardsBySet.value = new Map()
   }
 }
 
@@ -105,7 +168,7 @@ onMounted(async () => {
 <template>
   <div class="max-w-7xl mx-auto p-8 space-y-8">
     <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
-    <h1 title="Sir Truffles" class="lg:text-7xl text-6xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent" style="text-stroke: 5px white;">
+    <h1 title="Sir Truffles" class="lg:text-7xl md:text-6xl text-5xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent lg:text-stroke-5 md:text-stroke-3 text-stroke-2 text-stroke-white">
       Cardboard Tutor
     </h1>
     
@@ -232,7 +295,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div v-if="deckStore.groupedBySet.length > 0" class="space-y-6">
+    <div v-if="filteredGroupedBySet.length > 0" class="space-y-6">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl header-font bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
           Card Printings
@@ -254,7 +317,7 @@ onMounted(async () => {
         </label>
       </div>
       <div 
-        v-for="group in deckStore.groupedBySet" 
+        v-for="group in filteredGroupedBySet" 
         :key="group.setName" 
         class="glass-card p-6 rounded-xl mb-6"
       >
@@ -274,17 +337,17 @@ onMounted(async () => {
           >
             <div class="flex items-center gap-3">
               <button
-                @click="deckStore.decrementCard(card.cardName)"
-                :disabled="deckStore.getCardCount(card.cardName) <= 0"
+                @click="decrementCard(card.cardName, card.setCode)"
+                :disabled="!selectedCardsBySet.get(card.setCode)?.has(card.cardName)"
                 class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
                 :class="{
-                  'opacity-50 cursor-not-allowed': deckStore.getCardCount(card.cardName) <= 0
+                  'opacity-50 cursor-not-allowed': !selectedCardsBySet.get(card.setCode)?.has(card.cardName)
                 }"
               >
                 -1
               </button>
               <button
-                @click="deckStore.incrementCard(card.cardName)"
+                @click="incrementCard(card.cardName, card.setCode)"
                 class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
                 :class="{
                   'opacity-50 cursor-not-allowed': 

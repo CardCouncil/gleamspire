@@ -58,5 +58,57 @@ export default {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities, theme }) {
+      // Add text-stroke-width utilities
+      const strokeWidthUtilities = {
+        '.text-stroke-1': {
+          '-webkit-text-stroke-width': '1px',
+        },
+        '.text-stroke-2': {
+          '-webkit-text-stroke-width': '2px',
+        },
+        '.text-stroke-3': {
+          '-webkit-text-stroke-width': '3px',
+        },
+        '.text-stroke-4': {
+          '-webkit-text-stroke-width': '4px',
+        },
+        '.text-stroke-5': {
+          '-webkit-text-stroke-width': '5px',
+        },
+      };
+      
+      addUtilities(strokeWidthUtilities);
+      
+      // Add text-stroke-color utilities based on the theme colors
+      const colors = theme('colors');
+      const strokeColorUtilities = {};
+      
+      // Process the color object
+      Object.entries(colors).forEach(([colorName, colorValue]) => {
+        if (typeof colorValue === 'object') {
+          // Handle color objects (with variants like 100, 200, etc.)
+          Object.entries(colorValue).forEach(([shade, shadeValue]) => {
+            if (shade === 'DEFAULT') {
+              strokeColorUtilities[`.text-stroke-${colorName}`] = {
+                '-webkit-text-stroke-color': shadeValue,
+              };
+            } else {
+              strokeColorUtilities[`.text-stroke-${colorName}-${shade}`] = {
+                '-webkit-text-stroke-color': shadeValue,
+              };
+            }
+          });
+        } else {
+          // Handle simple color strings
+          strokeColorUtilities[`.text-stroke-${colorName}`] = {
+            '-webkit-text-stroke-color': colorValue,
+          };
+        }
+      });
+      
+      addUtilities(strokeColorUtilities);
+    },
+  ],
 }
