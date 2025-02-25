@@ -64,18 +64,23 @@ export default {
       const strokeWidthUtilities = {
         '.text-stroke-1': {
           'text-stroke-width': '1px',
+          '-webkit-text-stroke-width': '1px',
         },
         '.text-stroke-2': {
           'text-stroke-width': '2px',
+          '-webkit-text-stroke-width': '2px',
         },
         '.text-stroke-3': {
           'text-stroke-width': '3px',
+          '-webkit-text-stroke-width': '3px',
         },
         '.text-stroke-4': {
           'text-stroke-width': '4px',
+          '-webkit-text-stroke-width': '4px',
         },
         '.text-stroke-5': {
           'text-stroke-width': '5px',
+          '-webkit-text-stroke-width': '5px',
         },
       };
       
@@ -93,10 +98,12 @@ export default {
             if (shade === 'DEFAULT') {
               strokeColorUtilities[`.text-stroke-${colorName}`] = {
                 'text-stroke-color': shadeValue,
+                '-webkit-text-stroke-color': shadeValue,
               };
             } else {
               strokeColorUtilities[`.text-stroke-${colorName}-${shade}`] = {
                 'text-stroke-color': shadeValue,
+                '-webkit-text-stroke-color': shadeValue,
               };
             }
           });
@@ -104,6 +111,7 @@ export default {
           // Handle simple color strings
           strokeColorUtilities[`.text-stroke-${colorName}`] = {
             'text-stroke-color': colorValue,
+            '-webkit-text-stroke-color': colorValue,
           };
         }
       });
