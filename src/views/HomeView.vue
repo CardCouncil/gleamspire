@@ -187,23 +187,9 @@ onMounted(async () => {
                   </span>
                 </template>
               </span>
-              <div 
-                class="ml-auto font-mono text-sm text-white"
-              >
-                <button
-                  @click="deckStore.decrementCard(cardName)"
-                  :disabled="deckStore.getCardCount(cardName) <= 0"
-                  class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
-                  :class="{
-                    'opacity-50 cursor-not-allowed': deckStore.getCardCount(cardName) <= 0
-                  }"
-                >
-                  -1
-                </button>
             </div>
           </div>
         </div>
-      </div>
         <div class="mt-6 flex justify-center">
           <button
             @click="exportRemainingCards"
@@ -256,6 +242,16 @@ onMounted(async () => {
             class="p-1 hover:bg-white/5 rounded-lg transition-colors"
           >
             <div class="flex items-center gap-3">
+              <button
+                @click="deckStore.decrementCard(card.cardName)"
+                :disabled="deckStore.getCardCount(card.cardName) <= 0"
+                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
+                :class="{
+                  'opacity-50 cursor-not-allowed': deckStore.getCardCount(card.cardName) <= 0
+                }"
+              >
+                -1
+              </button>
               <button
                 @click="deckStore.incrementCard(card.cardName)"
                 class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
