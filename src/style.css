@@ -33,7 +33,7 @@
            hover:from-xanthous-500 hover:to-xanthous-700
            text-black font-medium px-6 py-2.5 rounded-lg shadow-lg 
            hover:shadow-xanthous-500/25 transition-all duration-300
-           disabled:from-kobicha-200 disabled:to-kobicha-300 disabled:cursor-not-allowed;
+           disabled:from-kobicha-200 disabled:to-kobicha-300 disabled:cursor-not-allowed disabled:text-white;
   }
   
   .btn-secondary {

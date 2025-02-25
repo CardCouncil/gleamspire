@@ -339,7 +339,7 @@ onMounted(async () => {
               <button
                 @click="decrementCard(card.cardName, card.setCode)"
                 :disabled="!selectedCardsBySet.get(card.setCode)?.has(card.cardName)"
-                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
+                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors btn-primary"
                 :class="{
                   'opacity-50 cursor-not-allowed': !selectedCardsBySet.get(card.setCode)?.has(card.cardName)
                 }"
@@ -348,7 +348,7 @@ onMounted(async () => {
               </button>
               <button
                 @click="incrementCard(card.cardName, card.setCode)"
-                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors"
+                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors btn-primary"
                 :class="{
                   'opacity-50 cursor-not-allowed': 
                     deckStore.getCardCount(card.cardName) >= deckStore.getRequiredCount(card.cardName)
