@@ -34,6 +34,7 @@ const exportRemainingCards = () => {
 const deckStore = useDeckStore()
 const newDeckList = ref('')
 const showSetTypeModal = ref(false)
+const isDeckListExpanded = ref(true)
 const orderOptions = [
   { value: 'releaseDate', label: 'Release Date (Newest First)' },
   { value: 'cardCount', label: 'Number of Cards (Most First)' }
@@ -138,9 +139,36 @@ onMounted(async () => {
 
     <div v-if="deckListEntries.length > 0" class="space-y-6">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl header-font bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
-          Current Deck List
-        </h2>
+        <button 
+          @click="isDeckListExpanded = !isDeckListExpanded"
+          class="flex items-center gap-2 group"
+        >
+          <h2 class="text-2xl header-font bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
+            Current Deck List
+          </h2>
+          <svg 
+            v-if="isDeckListExpanded"
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke-width="1.5" 
+            stroke="currentColor" 
+            class="size-6 text-xanthous-400 transition-transform group-hover:scale-110"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+          </svg>
+          <svg 
+            v-else
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke-width="1.5" 
+            stroke="currentColor" 
+            class="size-6 text-xanthous-400 transition-transform group-hover:scale-110"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
         <label class="flex items-center gap-2 justify-end">
           <span class="text-sm font-medium">Sort by:</span>
           <select
@@ -157,7 +185,10 @@ onMounted(async () => {
           </select>
         </label>
       </div>
-      <div class="glass-card p-6 rounded-xl">
+      <div 
+        v-show="isDeckListExpanded"
+        class="glass-card p-6 rounded-xl transition-all duration-300"
+      >
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           <div
             v-for="[cardName, quantity] in deckListEntries"
