@@ -105,7 +105,7 @@ onMounted(async () => {
 <template>
   <div class="max-w-7xl mx-auto p-8 space-y-8">
     <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
-    <h1 class="text-7xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent" style="text-stroke: 5px white;">
+    <h1 title="Sir Truffles" class="text-7xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent" style="text-stroke: 5px white;">
       Cardboard Tutor
     </h1>
     
