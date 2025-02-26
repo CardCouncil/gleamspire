@@ -258,7 +258,7 @@ onMounted(async () => {
             :key="cardName"
             class="p-1 hover:bg-white/5 rounded-lg transition-colors"
           >
-            <div class="grid grid-cols-3 gap-2" style="grid-template-columns: 1fr 8fr 2fr;">
+            <div class="grid grid-cols-3 gap-2" style="grid-template-columns: 1fr 8fr 3fr;">
               <div 
                 class="font-mono text-sm w-10"
                 :class="deckStore.getCardCount(cardName) >= quantity ? 'text-ivory/50' : 'text-peach-yellow-300'"
