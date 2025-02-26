@@ -166,18 +166,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto p-8 space-y-8">
+  <div class="max-w-7xl mx-auto md:p-8 p-1 space-y-8 md:text-md md:text-md text-xs">
     <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
     <h1 title="Sir Truffles" class="lg:text-7xl md:text-6xl text-5xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent lg:text-stroke-5 md:text-stroke-3 text-stroke-2 text-stroke-white">
       Cardboard Tutor
     </h1>
     
-    <div class="glass-card p-8 rounded-xl text-center space-y-4">
+    <div class="glass-card md:p-8 p-2 rounded-xl text-center space-y-4">
       <textarea
         v-model="newDeckList"
-        placeholder="Paste your deck list here (one card per line)"
+        :placeholder="'Paste your deck list here\none card per line'"
         rows="10"
-        class="w-full p-4 mb-4 font-mono input-field"
+        class="w-full p-4 mb-4 font-mono input-field placeholder:text-white "
       ></textarea>
       <div class="flex justify-center gap-4">
         <button 
@@ -201,7 +201,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="deckListEntries.length > 0" class="space-y-6">
-      <div class="flex items-center justify-between mb-6">
+      <div class="mb-6 md:grid-cols-2 grid-cols-1">
         <button 
           @click="isDeckListExpanded = !isDeckListExpanded"
           class="flex items-center gap-2 group"
@@ -232,7 +232,7 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
           </svg>
         </button>
-        <label class="flex items-center gap-2 justify-end">
+        <label class="flex items-center gap-2 md:justify-end">
           <span class="text-sm font-medium">Sort by:</span>
           <select
             v-model="deckStore.cardSortBy"
@@ -250,7 +250,7 @@ onMounted(async () => {
       </div>
       <div 
         v-show="isDeckListExpanded"
-        class="glass-card p-6 rounded-xl transition-all duration-300"
+        class="glass-card md:p-6 p-1 rounded-xl transition-all duration-300"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           <div
@@ -258,29 +258,27 @@ onMounted(async () => {
             :key="cardName"
             class="p-1 hover:bg-white/5 rounded-lg transition-colors"
           >
-            <div class="flex items-center gap-2">
-              <span 
-                class=" font-mono text-sm"
+            <div class="grid grid-cols-3 gap-2" style="grid-template-columns: 1fr 8fr 2fr;">
+              <div 
+                class="font-mono text-sm w-10"
                 :class="deckStore.getCardCount(cardName) >= quantity ? 'text-ivory/50' : 'text-peach-yellow-300'"
               >
                 ({{ deckStore.getCardCount(cardName) }}/{{ quantity }})
-              </span>
-              <span 
+              </div>
+              <div 
                 class="flex items-center gap-2"
                 :class="{ 'line-through text-ivory/50': deckStore.getCardCount(cardName) >= quantity }"
               >
                 {{ cardName }}{{ ' ' }}
-                <template v-if="deckStore.cardPrintings && deckStore.cardPrintings.length > 0">
-                  <span
-                    v-if="deckStore.cardPrintings.find(p => p.cardName === cardName)?.manaCost"
-                    class="text-sm text-peach-yellow-300 font-mono"
-                  >
-                    <ManaSymbols 
-                      :text="deckStore.cardPrintings.find(p => p.cardName === cardName)?.manaCost || ''"
-                    />
-                  </span>
-                </template>
-              </span>
+              </div>
+              <div
+                v-if="deckStore.cardPrintings.find(p => p.cardName === cardName)?.manaCost"
+                class="text-sm text-peach-yellow-300 font-mono grow text-right"
+              >
+                <ManaSymbols 
+                  :text="deckStore.cardPrintings.find(p => p.cardName === cardName)?.manaCost || ''"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -296,7 +294,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="filteredGroupedBySet.length > 0" class="space-y-6">
-      <div class="flex items-center justify-between mb-6">
+      <div class="md:grid-cols-2 grid-cols-1 mb-6">
         <h2 class="text-2xl header-font bg-clip-text text-transparent bg-gradient-to-r from-xanthous-400 to-peach-yellow-400">
           Card Printings
         </h2>
@@ -304,7 +302,7 @@ onMounted(async () => {
           <span class="text-sm font-medium">Order sets by:</span>
           <select
             v-model="deckStore.setOrderBy"
-            class="px-3 py-1.5 rounded-lg text-sm input-field min-w-[120px]"
+            class="px-3 py-1.5 rounded-lg text-sm input-field "
           >
             <option
               v-for="option in orderOptions"
@@ -319,15 +317,15 @@ onMounted(async () => {
       <div 
         v-for="group in filteredGroupedBySet" 
         :key="group.setName" 
-        class="glass-card p-6 rounded-xl mb-6"
+        class="glass-card md:p-6 p-1 rounded-xl mb-6"
       >
-        <h3 class="text-xl font-medium mb-4">
+        <h3 class="md:text-xl text-lg  font-medium mb-4">
           <img 
             :src="group.symbolUrl" 
             :alt="`${group.setName} symbol`" 
-            class="w-6 h-6 inline-block mr-2 invert"
+            class="md:w-6 md:h-6 w-5 h-5 inline-block md:mr-2 invert"
           >
-          {{ group.setName }} ({{ group.cards.length }} cards)
+          {{ group.setName }} ({{ group.cards.length }})
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           <div
@@ -335,11 +333,11 @@ onMounted(async () => {
             :key="`${card.setCode}-${card.number}`"
             class="p-1 hover:bg-white/5 rounded-lg transition-colors"
           >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center md:gap-3 gap-1">
               <button
                 @click="decrementCard(card.cardName, card.setCode)"
                 :disabled="!selectedCardsBySet.get(card.setCode)?.has(card.cardName)"
-                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors btn-primary"
+                class="md:px-3 md:py-1.5 px-1 py-1 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors btn-primary"
                 :class="{
                   'opacity-50 cursor-not-allowed': !selectedCardsBySet.get(card.setCode)?.has(card.cardName)
                 }"
@@ -348,7 +346,7 @@ onMounted(async () => {
               </button>
               <button
                 @click="incrementCard(card.cardName, card.setCode)"
-                class="px-3 py-1.5 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors btn-primary"
+                class="md:px-3 md:py-1.5 px-1 py-1 bg-xanthous-500/20 hover:bg-xanthous-500/30 rounded-lg text-sm font-mono transition-colors btn-primary"
                 :class="{
                   'opacity-50 cursor-not-allowed': 
                     deckStore.getCardCount(card.cardName) >= deckStore.getRequiredCount(card.cardName)
@@ -358,16 +356,14 @@ onMounted(async () => {
                 +1
               </button>
               {{ card.cardName }}
-              <template v-if="deckStore.cardPrintings && deckStore.cardPrintings.length > 0">
-                <span
-                  v-if="deckStore.cardPrintings.find(p => p.cardName === card.cardName )?.manaCost"
-                  class="text-sm text-peach-yellow-300 font-mono"
-                >
-                  <ManaSymbols 
-                    :text="deckStore.cardPrintings.find(p => p.cardName === card.cardName )?.manaCost || ''"
-                  />
-                </span>
-              </template>
+              <div
+                v-if="deckStore.cardPrintings.find(p => p.cardName === card.cardName )?.manaCost"
+                class="text-sm text-peach-yellow-300 font-mono grow text-right"
+              >
+                <ManaSymbols 
+                  :text="deckStore.cardPrintings.find(p => p.cardName === card.cardName )?.manaCost || ''"
+                />
+              </div>
             </div>
           </div>
         </div>
