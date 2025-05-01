@@ -35,7 +35,7 @@ export const useDeckStore = defineStore('deck', () => {
   const error = ref<string | null>(null)
   const setMetadata = ref<Map<string, SetMetadata>>(new Map())
   const selectedSetTypes = ref<Set<string>>(new Set(
-    JSON.parse(localStorage.getItem('selectedSetTypes') || '["expansion", "core"]')
+    JSON.parse(localStorage.getItem('selectedSetTypes') || '["expansion","core","commander","duel_deck","starter","planechase","premium_deck","from_the_vault","masters","memorabilia","box","spellbook","alchemy","archenemy","draft_innovation"]')
   ))
   const selectedSets = ref<Set<string>>(new Set())
   const isInitialized = ref(false)
