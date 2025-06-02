@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import logo from '../assets/logo.png'
+import bolt from '../assets/bolt.png'
 import { useDeckStore } from '../stores/deck'
 import SetTypeModal from '../components/SetTypeModal.vue'
 import ManaSymbols from '../components/ManaSymbols.vue'
@@ -166,6 +167,18 @@ onMounted(async () => {
 </script>
 
 <template>
+  <a
+    href="https://bolt.new/"
+    target="_blank"
+    rel="noopener"
+    class="fixed top-4 right-4 w-20 h-20 z-50"
+  >
+    <img
+      :src="bolt"
+      alt="Bolt Icon"
+      class="w-full h-full drop-shadow-lg bg-white rounded-full p-2 border border-neutral-200"
+    />
+  </a>
   <div class="max-w-7xl mx-auto md:p-8 p-1 space-y-8 md:text-md md:text-md text-xs">
     <img :src="logo" alt="cardboard tutor logo" class="w-48 h-auto mx-auto mb-4">
     <h1 title="Sir Truffles" class="lg:text-7xl md:text-6xl text-5xl header-font text-center mb-8 bg-clip-text text-transparent bg-transparent lg:text-stroke-5 md:text-stroke-3 text-stroke-2 text-stroke-white">
