@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { watch } from 'vue'
+import {
+  getSets,
+  searchPrintingsByNames,
+  SEARCH_CHUNK_SIZE,
+  ScryfallRateLimitError,
+  type ScryfallCard
+} from '../services/scryfall'
 
 interface SetGroup {
   cards: CardPrinting[]
@@ -33,18 +40,24 @@ export const useDeckStore = defineStore('deck', () => {
   const selectedPrintings = ref<Map<string, number>>(new Map())
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const warnings = ref<string[]>([])
+  const loadedCount = ref(0)
+  const totalCount = ref(0)
   const setMetadata = ref<Map<string, SetMetadata>>(new Map())
   const selectedSetTypes = ref<Set<string>>(new Set(
     JSON.parse(localStorage.getItem('selectedSetTypes') || '["expansion","core","commander","duel_deck","starter","planechase","premium_deck","from_the_vault","masters","memorabilia","box","spellbook","alchemy","archenemy","draft_innovation"]')
   ))
   const selectedSets = ref<Set<string>>(new Set())
-  const isInitialized = ref(false)
   const setOrderBy = ref<'releaseDate' | 'cardCount'>('releaseDate')
   const cardSortBy = ref<'name' | 'color_identity' | 'type_line' | 'rarity'>('name')
 
   const colorOrder = ['W', 'U', 'B', 'R', 'G']
   const rarityOrder = ['mythic', 'rare', 'uncommon', 'common', 'special']
   const basicLandNames = new Set(['Plains', 'Island', 'Swamp', 'Mountain', 'Forest', 'Wastes'])
+
+  // Printings fetched this session, keyed by lowercased card name — Scryfall
+  // asks clients to cache, and this makes re-running an edited list instant
+  const printingsCache = new Map<string, CardPrinting[]>()
 
   function sortCards(a: CardPrinting, b: CardPrinting): number {
     switch (cardSortBy.value) {
@@ -78,22 +91,26 @@ export const useDeckStore = defineStore('deck', () => {
     { deep: true }
   )
 
-  async function initializeSetMetadata() {
-    if (!isInitialized.value) {
-      isInitialized.value = true
-      try {
-        const response = await fetch('https://api.scryfall.com/sets')
-        if (!response.ok) throw new Error('Failed to fetch sets data')
-        const data = await response.json()
-        
-        data.data.forEach((set: SetMetadata) => {
-          setMetadata.value.set(set.code, set)
-        })
-      } catch (e) {
-        console.error('Error fetching sets metadata:', e)
-        error.value = 'Error loading set data: ' + (e as Error).message
-      }
+  // Single in-flight promise: concurrent callers await the same load, and a
+  // failed load can be retried on the next call
+  let initPromise: Promise<void> | null = null
+
+  function initializeSetMetadata(): Promise<void> {
+    if (!initPromise) {
+      initPromise = (async () => {
+        try {
+          const sets = await getSets()
+          sets.forEach((set) => {
+            setMetadata.value.set(set.code, set)
+          })
+        } catch (e) {
+          initPromise = null
+          console.error('Error fetching sets metadata:', e)
+          error.value = 'Error loading set data: ' + (e as Error).message
+        }
+      })()
     }
+    return initPromise
   }
 
   const groupedBySet = computed(() => {
@@ -165,24 +182,70 @@ export const useDeckStore = defineStore('deck', () => {
     }
   }
 
+  function toCardPrinting(card: ScryfallCard): CardPrinting {
+    return {
+      setName: card.set_name,
+      setCode: card.set,
+      cardName: card.name,
+      manaCost: card.mana_cost || '',
+      colorIdentity: card.color_identity || [],
+      typeLine: card.type_line?.split('—')[0].trim() || '',
+      rarity: card.rarity || '',
+      number: card.collector_number,
+      setType: card.set_type,
+      releaseDate: card.released_at
+    }
+  }
+
+  // If the user typed a face name ("Fable of the Mirror-Breaker") or wrong
+  // casing, re-key the deck list entry to Scryfall's canonical card name so
+  // required-count lookups (which use cardName) line up. Only safe when the
+  // name resolved to exactly one card.
+  function reconcileDeckListName(requestedName: string, printings: CardPrinting[]) {
+    const canonical = printings[0]?.cardName
+    if (!canonical || canonical === requestedName) return
+    if (!printings.every(p => p.cardName === canonical)) return
+    if (!currentDeckList.value.has(requestedName)) return
+    const quantity = currentDeckList.value.get(requestedName)!
+    currentDeckList.value.delete(requestedName)
+    currentDeckList.value.set(canonical, (currentDeckList.value.get(canonical) || 0) + quantity)
+  }
+
+  function appendPrintings(printings: CardPrinting[]) {
+    // Add only unique printings
+    printings.forEach((printing) => {
+      const exists = cardPrintings.value.some(
+        p => p.setCode === printing.setCode &&
+            p.number === printing.number &&
+            p.cardName === printing.cardName
+      )
+      if (!exists) {
+        cardPrintings.value.push(printing)
+      }
+    })
+  }
+
   async function addDeckList(list: string) {
     // Clear previous data
     currentDeckList.value.clear()
     cardPrintings.value = []
     selectedPrintings.value.clear()
     error.value = null
+    warnings.value = []
+    loadedCount.value = 0
+    totalCount.value = 0
     isLoading.value = true
 
     try {
       // Initialize set metadata first
       await initializeSetMetadata()
-    
+
       // Parse deck list
       const lines = list
         .split('\n')
         .map(line => line.trim())
         .filter(line => line && !line.startsWith('//') && line !== '')
-    
+
       // Process each line to extract quantity and card name
       for (const line of lines) {
         let quantity = 1
@@ -197,50 +260,59 @@ export const useDeckStore = defineStore('deck', () => {
 
         // Skip basic lands
         if (basicLandNames.has(cardName)) continue
-        
-        currentDeckList.value.set(cardName, quantity)
-    
-        // Fetch all printings for the card
-        const response = await fetch(
-          `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(cardName)}"+game:paper&unique=prints`
-        )
-        const data = await response.json()
 
-        if (response.ok) {
-          const newPrintings = data.data
-            .map((card: any) => ({
-              setName: card.set_name,
-              setCode: card.set,
-              cardName: card.name,
-              manaCost: card.mana_cost || '',
-              colorIdentity: card.color_identity || [],
-              typeLine: card.type_line?.split('—')[0].trim() || '',
-              rarity: card.rarity || '',
-              number: card.collector_number,
-              setType: card.set_type,
-              releaseDate: card.released_at
-            }))
-            .sort((a: CardPrinting, b: CardPrinting) => 
-              a.setName.localeCompare(b.setName) || 
+        currentDeckList.value.set(cardName, quantity)
+      }
+
+      // The Map already dedupes repeated lines; serve cached names instantly
+      const uniqueNames = Array.from(currentDeckList.value.keys())
+      totalCount.value = uniqueNames.length
+
+      const namesToFetch: string[] = []
+      for (const name of uniqueNames) {
+        const cached = printingsCache.get(name.toLowerCase())
+        if (cached) {
+          appendPrintings(cached)
+          reconcileDeckListName(name, cached)
+          loadedCount.value++
+        } else {
+          namesToFetch.push(name)
+        }
+      }
+
+      // Fetch the rest in batched, rate-limited search queries
+      const notFoundNames: string[] = []
+      for (let i = 0; i < namesToFetch.length; i += SEARCH_CHUNK_SIZE) {
+        const chunk = namesToFetch.slice(i, i + SEARCH_CHUNK_SIZE)
+        const { byName, notFound } = await searchPrintingsByNames(chunk)
+
+        byName.forEach((cards, name) => {
+          const printings = cards
+            .map(toCardPrinting)
+            .sort((a, b) =>
+              a.setName.localeCompare(b.setName) ||
               a.number.localeCompare(b.number)
             )
+          printingsCache.set(name.toLowerCase(), printings)
+          appendPrintings(printings)
+          reconcileDeckListName(name, printings)
+          loadedCount.value++
+        })
 
-            // Add only unique printings
-            newPrintings.forEach((printing: CardPrinting) => {
-              const exists = cardPrintings.value.some(
-                p => p.setCode === printing.setCode && 
-                    p.number === printing.number &&
-                    p.cardName === printing.cardName
-              )
-              if (!exists) {
-                cardPrintings.value.push(printing)
-              }
-            })
-        }
+        notFoundNames.push(...notFound)
+        loadedCount.value += notFound.length
+      }
+
+      if (notFoundNames.length > 0) {
+        warnings.value = ['Not found on Scryfall (check spelling): ' + notFoundNames.join(', ')]
       }
     } catch (e) {
       console.error('Error processing deck list:', e)
-      error.value = 'Error processing deck list: ' + (e as Error).message
+      if (e instanceof ScryfallRateLimitError) {
+        error.value = 'Scryfall rate limit hit. Please wait about 30 seconds and try again.'
+      } else {
+        error.value = 'Error processing deck list: ' + (e as Error).message
+      }
     } finally {
       isLoading.value = false
     }
@@ -251,6 +323,9 @@ export const useDeckStore = defineStore('deck', () => {
     cardPrintings.value = []
     selectedPrintings.value.clear()
     error.value = null
+    warnings.value = []
+    loadedCount.value = 0
+    totalCount.value = 0
   }
 
   return {
@@ -263,6 +338,9 @@ export const useDeckStore = defineStore('deck', () => {
     cardSortBy,
     selectedSets,
     error,
+    warnings,
+    loadedCount,
+    totalCount,
     selectedSetTypes,
     groupedBySet,
     setOrderBy,

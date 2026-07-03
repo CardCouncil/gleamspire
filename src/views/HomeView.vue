@@ -198,7 +198,7 @@ onMounted(async () => {
           :disabled="deckStore.isLoading"
           class="btn-primary"
         >
-          {{ deckStore.isLoading ? 'Processing...' : 'Add' }}
+          {{ deckStore.isLoading ? (deckStore.totalCount > 0 ? `Processing ${deckStore.loadedCount}/${deckStore.totalCount}...` : 'Processing...') : 'Add' }}
         </button>
         <button 
           @click="showSetTypeModal = true" 
@@ -211,6 +211,10 @@ onMounted(async () => {
 
     <div v-if="deckStore.error" class="p-4 mb-4 text-red-700 bg-red-100 border border-red-300 rounded-lg">
       {{ deckStore.error }}
+    </div>
+
+    <div v-if="deckStore.warnings.length > 0" class="p-4 mb-4 text-yellow-800 bg-yellow-100 border border-yellow-300 rounded-lg">
+      <p v-for="warning in deckStore.warnings" :key="warning">{{ warning }}</p>
     </div>
 
     <div v-if="deckListEntries.length > 0" class="space-y-6">
