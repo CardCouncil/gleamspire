@@ -222,6 +222,12 @@ export function getSymbology(): Promise<ScryfallCardSymbol[]> {
   return symbologyInflight
 }
 
+// Deck lists write multi-face names several ways ("A / B", "A/B", "A // B");
+// Scryfall's canonical separator is " // ".
+function normalizeCardName(name: string): string {
+  return name.replace(/\s*\/{1,2}\s*/g, ' // ')
+}
+
 // Scryfall search strings accept either "double" or 'single' quote delimiters.
 // Names containing both kinds (none exist today) fall back to /cards/named.
 function quoteName(name: string): string | null {
@@ -245,17 +251,18 @@ function matchesName(card: ScryfallCard, target: string): boolean {
  * matches are returned in notFound rather than throwing.
  */
 export async function searchPrintingsByNames(names: string[]): Promise<PrintingsResult> {
-  const quotable: string[] = []
+  const quotedTerms: string[] = []
   const unquotable: string[] = []
   for (const name of names) {
-    if (quoteName(name)) quotable.push(name)
+    const quoted = quoteName(normalizeCardName(name))
+    if (quoted) quotedTerms.push(quoted)
     else unquotable.push(name)
   }
 
   const cards: ScryfallCard[] = []
 
-  if (quotable.length > 0) {
-    const query = `(${quotable.map(name => quoteName(name)).join(' or ')}) game:paper`
+  if (quotedTerms.length > 0) {
+    const query = `(${quotedTerms.join(' or ')}) game:paper`
     const params = new URLSearchParams({ q: query, unique: 'prints' })
     try {
       cards.push(...await fetchAllPages<ScryfallCard>(
@@ -269,7 +276,7 @@ export async function searchPrintingsByNames(names: string[]): Promise<Printings
 
   for (const name of unquotable) {
     try {
-      const params = new URLSearchParams({ exact: name })
+      const params = new URLSearchParams({ exact: normalizeCardName(name) })
       const card = await scryfallRequest<ScryfallCard>(
         `https://api.scryfall.com/cards/named?${params}`, 'search'
       )
@@ -289,7 +296,7 @@ export async function searchPrintingsByNames(names: string[]): Promise<Printings
   const byName = new Map<string, ScryfallCard[]>()
   const notFound: string[] = []
   for (const requested of names) {
-    const target = requested.toLowerCase()
+    const target = normalizeCardName(requested).toLowerCase()
     const matched = cards.filter(card => matchesName(card, target))
     if (matched.length > 0) byName.set(requested, matched)
     else notFound.push(requested)
